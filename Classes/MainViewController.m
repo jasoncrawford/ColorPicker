@@ -57,9 +57,12 @@
 }
 
 - (void)refreshView {
-    colorPickerViewController.color = self.selectedColor;
+    NSInteger index = segmentedControl.selectedSegmentIndex;
     [gradientView setNeedsDisplay];
+    slider.value = [gradient locationAtIndex:index];
+    slider.enabled = [gradient locationIsSettable:index];
     palletteView.backgroundColor = self.selectedColor.UIColor;
+    colorPickerViewController.color = self.selectedColor;
     removeButton.enabled = gradient.count > 1;
 }
 
@@ -98,6 +101,11 @@
 - (IBAction)segmentedControlValueChanged {
     NSLog(@"segmentedControlValueChanged: segmentedControl.selectedSegmentIndex=%d", segmentedControl.selectedSegmentIndex);
     [self refreshView];
+}
+
+- (IBAction)sliderValueChanged {
+    NSInteger index = segmentedControl.selectedSegmentIndex;
+    [gradient setLocationAtIndex:index to:slider.value];
 }
 
 @end

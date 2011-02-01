@@ -25,6 +25,14 @@
     if (self = [super init]) {
         colors = [[NSMutableArray alloc] initWithArray:c];
         [colors makeObjectsPerformSelector:@selector(addObserver:) withObject:self];
+
+        NSInteger count = colors.count;
+        locations = [[NSMutableArray alloc] initWithCapacity:count];
+        CGFloat step = 1.0 / (count-1);
+        for (int i = 0; i < count; i++) {
+            CGFloat location = (i==0)? 0.0 : (i==count-1)? 1.0 : i * step;
+            [locations addObject:[NSNumber numberWithFloat:location]];
+        }
     }
     return self;
 }
@@ -50,9 +58,25 @@
     return [colors objectAtIndex:index];
 }
 
+- (CGFloat)locationAtIndex:(NSInteger)index {
+    if (![self indexIsInBounds:index]) return 0;
+    return [[locations objectAtIndex:index] floatValue];
+}
+
 - (void)insertColor:(Color *)color atIndex:(NSInteger)index {
     [color addObserver:self];
+
+    CGFloat location;
+    if (index == 0) location = 0.0;
+    else if (index == colors.count) location = 1.0;
+    else {
+        CGFloat before = [self locationAtIndex:index-1];
+        CGFloat after = [self locationAtIndex:index];
+        location = (before+after)/2.0;
+    }
+
     [colors insertObject:color atIndex:index];
+    [locations insertObject:[NSNumber numberWithFloat:location] atIndex:index];
     [self notifyObservers];
 }
 
@@ -61,19 +85,42 @@
     Color *color = [self colorAtIndex:index];
     [color removeObserver:self];
     [colors removeObjectAtIndex:index];
+    [locations removeObjectAtIndex:index];
+    [self setLocationAtIndex:0 to:0];
+    [self setLocationAtIndex:self.count-1 to:1];
     [self notifyObservers];
 }
 
-- (NSArray *)UIColors {
-    NSMutableArray *UIColors = [NSMutableArray arrayWithCapacity:colors.count];
-    for (Color *color in colors) [UIColors addObject:color.UIColor];
-    return UIColors;
+- (BOOL)locationIsSettable:(NSInteger)index {
+    if (![self indexIsInBounds:index]) return NO;
+    if (index == 0) return NO;
+    if (index == self.count-1) return NO;
+    return YES;
+}
+
+- (void)setLocationAtIndex:(NSInteger)index to:(CGFloat)location {
+    if (![self locationIsSettable:index]) return;
+    [locations replaceObjectAtIndex:index withObject:[NSNumber numberWithFloat:location]];
+    [self notifyObservers];
 }
 
 - (NSArray *)CGColors {
     NSMutableArray *CGColors = [NSMutableArray arrayWithCapacity:colors.count];
     for (Color *color in colors) [CGColors addObject:(id)color.UIColor.CGColor];
     return CGColors;
+}
+
+- (CGGradientRef)createCGGradient {
+    NSArray *CGColors = self.CGColors;
+    CGColorRef color = (CGColorRef) [CGColors objectAtIndex:0];
+    CGColorSpaceRef colorSpace = CGColorGetColorSpace(color);
+
+    CGFloat locationArray[self.count];
+    for (int i = 0; i < locations.count; i++) {
+        locationArray[i] = [[locations objectAtIndex:i] floatValue];
+    }
+
+    return CGGradientCreateWithColors(colorSpace, (CFArrayRef) CGColors, locationArray);
 }
 
 - (void)objectDidChange:(NSNotification *)notification {

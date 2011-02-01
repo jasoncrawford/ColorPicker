@@ -39,5 +39,6 @@
 - (IBAction)addPressed;
 - (IBAction)removePressed;
 - (IBAction)segmentedControlValueChanged;
+- (IBAction)sliderValueChanged;
 
 @end

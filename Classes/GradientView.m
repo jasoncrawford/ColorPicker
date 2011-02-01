@@ -30,20 +30,18 @@
     CGRect bounds = self.bounds;
     CGContextRef context = UIGraphicsGetCurrentContext();
 
-    NSArray *colors = gradient.CGColors;
-    CGColorRef color = (CGColorRef) [colors objectAtIndex:0];
-
-    if (colors.count == 1) {
+    if (gradient.count == 1) {
+        NSArray *colors = gradient.CGColors;
+        CGColorRef color = (CGColorRef) [colors objectAtIndex:0];
         CGContextSetFillColorWithColor(context, color);
         CGContextFillRect(context, bounds);
         return;
     }
 
-    CGColorSpaceRef colorSpace = CGColorGetColorSpace(color);
-    CGGradientRef CGGradient = CGGradientCreateWithColors(colorSpace, (CFArrayRef) colors, NULL);
+    CGGradientRef CGGradient = [gradient createCGGradient];
 
-    CGPoint start = CGPointMake(CGRectGetMidX(bounds), CGRectGetMinY(bounds));
-    CGPoint end = CGPointMake(CGRectGetMidX(bounds), CGRectGetMaxY(bounds));
+    CGPoint start = CGPointMake(CGRectGetMinX(bounds), CGRectGetMidY(bounds));
+    CGPoint end = CGPointMake(CGRectGetMaxX(bounds), CGRectGetMidY(bounds));
 
     CGGradientDrawingOptions options = 0;
 

@@ -12,6 +12,7 @@
 
 @interface Gradient : NSObject {
     NSMutableArray *colors;
+    NSMutableArray *locations;
     BOOL hueLock;
 }
 
@@ -24,10 +25,13 @@
 @property (nonatomic, readonly) NSInteger count;
 
 - (Color *)colorAtIndex:(NSInteger)index;
+- (CGFloat)locationAtIndex:(NSInteger)index;
 - (void)insertColor:(Color *)color atIndex:(NSInteger)index;
 - (void)removeColorAtIndex:(NSInteger)index;
+- (BOOL)locationIsSettable:(NSInteger)index;
+- (void)setLocationAtIndex:(NSInteger)index to:(CGFloat)location;
 
-- (NSArray *)UIColors;
 - (NSArray *)CGColors;
+- (CGGradientRef)createCGGradient;
 
 @end
